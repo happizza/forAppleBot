@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -79,11 +80,14 @@ public class MainActivity extends Activity implements Runnable {
          mServer = new ServerSocket(port);
          mSocket = mServer.accept();
          BufferedReader in = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+         OutputStream outputStream = mSocket.getOutputStream();
          String message;
          final StringBuilder messageBuilder = new StringBuilder();
          while ((message = in.readLine()) != null){
              //save msg
              messageBuilder.append(message);
+             
+             outputStream.write(message.getBytes());
          }
          //msg post
          mHandler.post(new Runnable() {
@@ -174,7 +178,6 @@ public class MainActivity extends Activity implements Runnable {
    textResponse.setText(response);
    super.onPostExecute(result);
   }
-  
  }
-
+ 
 }
