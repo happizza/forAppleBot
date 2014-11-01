@@ -243,12 +243,13 @@ public class MainActivity extends Activity {
 					message += "#" + count + " from " + socket.getInetAddress()
 							+ ":" + socket.getPort() + "\n say: ";
 
-					byte buffer[] = new byte[1024];
 					InputStream stream = socket.getInputStream();
 					int length;
 
 					while (true) {
 						try {
+							byte buffer[] = new byte[socket
+									.getReceiveBufferSize()];
 							length = stream.read(buffer);
 							if (length > 0) {
 								message += "[Success]"
