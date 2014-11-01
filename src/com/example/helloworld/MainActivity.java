@@ -93,12 +93,58 @@ public class MainActivity extends Activity {
 	OnClickListener buttonConnectOnClickListener = new OnClickListener() {
 		// Send Action
 		@Override
-		public void onClick(View arg0) {
-			MyClientTask myClientTask = new MyClientTask(editTextAddress
-					.getText().toString(), Integer.parseInt(editTextPort
-					.getText().toString()));
-			myClientTask.execute();
+		public void onClick(View v) {
+			String address = editTextAddress.toString();
+			String strPort = editTextPort.toString();
+			int port = Integer.parseInt(strPort);
+
+			Socket socket = null;
+
+			try {
+				socket = new Socket(address, port);
+
+				if (socket.isConnected()) {
+					textResponse.setText(textResponse.getText()
+							+ "\n Socket Connected!");
+				} else {
+					textResponse.setText(textResponse.getText()
+							+ "\n Socket cannot Connect!");
+				}
+
+				PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+				String sendMessage = "Message by Android";;
+
+				pw.println(sendMessage);
+
+			} catch (UnknownHostException e) {
+				textResponse.setText(textResponse.getText()
+						+ "\n UnknownHostException: " + e.toString());
+				e.printStackTrace();
+			} catch (IOException e) {
+				textResponse.setText(textResponse.getText()
+						+ "\n IOException: " + e.toString());
+				e.printStackTrace();
+			}
+
+			if (socket != null) {
+				try {
+					textResponse.setText(textResponse.getText()
+							+ "\n socket close");
+					socket.close();
+					socket = null;
+				} catch (IOException e) {
+					textResponse.setText(textResponse.getText()
+							+ "\n IOException: " + e.toString());
+					e.printStackTrace();
+				}
+			}
 		}
+		// public void onClick(View arg0) {
+		// MyClientTask myClientTask = new MyClientTask(editTextAddress
+		// .getText().toString(), Integer.parseInt(editTextPort
+		// .getText().toString()));
+		// myClientTask.execute();
+		// }
 	};
 
 	/**
