@@ -224,21 +224,20 @@ public class MainActivity extends Activity {
      Socket socket = mServer.accept();
      count++;
      message += "#" + count + " from " + socket.getInetAddress()
-       + ":" + socket.getPort() + "\n";
+       + ":" + socket.getPort() + "\n say: ";
 
 
 	 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	 String request;
-	 final StringBuilder messageBuilder = new StringBuilder();
-	 while ((request = in.readLine()) != null){
+	 while (in!=null && (request = in.readLine()) != null){
 		 //save msg
-		 messageBuilder.append(request);
+		 message += request+"\n";
 	 }
 	 
      MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-    	textResponse.setText(message + " say :" + messageBuilder.toString());
+    	textResponse.setText(message);
       }
      });
 
