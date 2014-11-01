@@ -1,10 +1,9 @@
 package com.example.helloworld;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -20,19 +19,18 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class MainActivity extends Activity implements Runnable {
+public class MainActivity extends Activity {
 
+ static final int SocketServerPORT = 8080;
  private ServerSocket mServer;
- private Socket mSocket;
+// private Socket mSocket;
  //recv port
- int port = 8080;
- volatile Thread runner = null;
  Handler mHandler = new Handler();
  TextView myip, textResponse;
  EditText editTextAddress, editTextPort; 
  Button buttonConnect, buttonClear;
+ String message ="";
 
  @Override
  protected void onCreate(Bundle savedInstanceState) {
@@ -48,12 +46,9 @@ public class MainActivity extends Activity implements Runnable {
           + "." + ((address >> 24) & 0xFF);
   myip = (TextView) findViewById(R.id.myAddr);
   myip.setText(ipAddressStr);
-   
-  if(runner == null){
-      runner = new Thread(this);
-      runner.start();
-  }
-  Toast.makeText(this, "スレッドスタート", Toast.LENGTH_SHORT).show();
+
+  Thread runner = new Thread(new SocketServerThread());
+  runner.start();
   
   //Send
   editTextAddress = (EditText)findViewById(R.id.address);
@@ -71,37 +66,62 @@ public class MainActivity extends Activity implements Runnable {
     textResponse.setText("");
    }});
  }
-/**
- * Recv Server Method
- */
+ 
+
  @Override
- public void run() {
-     try {
-         mServer = new ServerSocket(port);
-         mSocket = mServer.accept();
-         BufferedReader in = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-         OutputStream outputStream = mSocket.getOutputStream();
-         String message;
-         final StringBuilder messageBuilder = new StringBuilder();
-         while ((message = in.readLine()) != null){
-             //save msg
-             messageBuilder.append(message);
-             
-             outputStream.write(message.getBytes());
-         }
-         //msg post
-         mHandler.post(new Runnable() {
-              
-             @Override
-             public void run() {
-                 Toast.makeText(getApplicationContext(), messageBuilder.toString(), Toast.LENGTH_SHORT).show();
-             }
-         });
-         runner.start();
-     } catch (IOException e) {
-         e.printStackTrace();
-     }
+ protected void onDestroy() {
+  super.onDestroy();
+
+  if (mServer != null) {
+   try {
+	   mServer.close();
+   } catch (IOException e) {
+    // TODO Auto-generated catch block
+    e.printStackTrace();
+   }
+  }
  }
+// 
+///**
+// * Recv Server Method
+// */
+// @Override
+// public void run() {
+//     try {
+//         mServer = new ServerSocket(port);
+//         mSocket = mServer.accept();
+//         while(true){
+//        	 BufferedReader in = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+//        	 OutputStream outputStream = mSocket.getOutputStream();
+//        	 String message;
+//        	 final StringBuilder messageBuilder = new StringBuilder();
+//        	 while ((message = in.readLine()) != null){
+//        		 //save msg
+//        		 messageBuilder.append(message);
+//             
+//        		 outputStream.write(message.getBytes());
+//        	 }
+//        	 //msg post
+//        	 mHandler.post(new Runnable() {
+//              
+//        		 @Override
+//        		 public void run() {
+//        			 Toast.makeText(getApplicationContext(), messageBuilder.toString(), Toast.LENGTH_SHORT).show();
+//        		 }
+//        	 });
+//        	 
+//        	 mHandler.post(new Runnable(){
+//        		 @Override
+//        		 public void run(){
+//        			 textResponse.setText("Disconnect");
+//        		 }
+//        	 });
+//         }
+//         runner.start();
+//     } catch (IOException e) {
+//         e.printStackTrace();
+//     }
+// }
  
  OnClickListener buttonConnectOnClickListener = 
    new OnClickListener(){
@@ -180,4 +200,95 @@ public class MainActivity extends Activity implements Runnable {
   }
  }
  
+
+ private class SocketServerThread extends Thread {
+
+  int count = 0;
+
+  @Override
+  public void run() {
+   try {
+	   mServer = new ServerSocket(SocketServerPORT);
+    MainActivity.this.runOnUiThread(new Runnable() {
+
+     @Override
+     public void run() {
+    	 textResponse.setText("I'm waiting here: "
+        + mServer.getLocalPort());
+     }
+    });
+
+    while (true) {
+     Socket socket = mServer.accept();
+     count++;
+     message += "#" + count + " from " + socket.getInetAddress()
+       + ":" + socket.getPort() + "\n";
+
+     MainActivity.this.runOnUiThread(new Runnable() {
+
+      @Override
+      public void run() {
+    	textResponse.setText(message);
+      }
+     });
+
+     SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread(
+       socket, count);
+     socketServerReplyThread.run();
+
+    }
+   } catch (IOException e) {
+    // TODO Auto-generated catch block
+    e.printStackTrace();
+   }
+  }
+
+ }
+ private class SocketServerReplyThread extends Thread {
+
+	  private Socket hostThreadSocket;
+	  int cnt;
+
+	  SocketServerReplyThread(Socket socket, int c) {
+	   hostThreadSocket = socket;
+	   cnt = c;
+	  }
+
+	  @Override
+	  public void run() {
+	   OutputStream outputStream;
+	   String msgReply = "Hello from Android, you are #" + cnt;
+
+	   try {
+	    outputStream = hostThreadSocket.getOutputStream();
+	             PrintStream printStream = new PrintStream(outputStream);
+	             printStream.print(msgReply);
+	             printStream.close();
+
+	    message += "replayed: " + msgReply + "\n";
+
+	    MainActivity.this.runOnUiThread(new Runnable() {
+
+	     @Override
+	     public void run() {
+	    	 textResponse.setText(message);
+	     }
+	    });
+
+	   } catch (IOException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    message += "Something wrong! " + e.toString() + "\n";
+	   }
+
+	   MainActivity.this.runOnUiThread(new Runnable() {
+
+	    @Override
+	    public void run() {
+	    	textResponse.setText(message);
+	    }
+	   });
+	  }
+
+	 }
 }
