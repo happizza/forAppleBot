@@ -7,41 +7,61 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.helloworld.MainActivity" >
-        
-    <TextView
-        android:id="@+id/tv_msg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
 
     <TextView
         android:id="@+id/myAddr"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-        
-    <EditText 
-        android:id="@+id/address"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="dstAddress" />
-    <EditText 
-        android:id="@+id/port"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="dstPort" />
-    <Button 
-        android:id="@+id/connect"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Connect..."/>
-    <Button 
+        android:text="IP" />
+
+    <Button
         android:id="@+id/clear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Clear"/>
+        android:layout_alignLeft="@+id/connect"
+        android:layout_below="@+id/connect"
+        android:layout_marginTop="14dp"
+        android:text="Clear" />
+
+    <EditText
+        android:id="@+id/port"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/myAddr"
+        android:layout_below="@+id/myAddr"
+        android:layout_marginTop="75dp"
+        android:ems="10"
+        android:hint="dstPort" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/port"
+        android:layout_below="@+id/myAddr"
+        android:layout_marginTop="32dp"
+        android:ems="10"
+        android:hint="dstAddress" />
+
+    <Button
+        android:id="@+id/connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/port"
+        android:layout_below="@+id/port"
+        android:layout_marginTop="19dp"
+        android:text="Connect..." />
+
     <TextView
         android:id="@+id/response"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-        
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/clear"
+        android:layout_below="@+id/clear"
+        android:layout_marginTop="17dp"
+        android:text="response" />
+
 </RelativeLayout>
