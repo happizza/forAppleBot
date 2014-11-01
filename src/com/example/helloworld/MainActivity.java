@@ -249,15 +249,12 @@ public class MainActivity extends Activity {
 					InputStream stream = socket.getInputStream();
 					InputStreamReader reader = new InputStreamReader(stream);
 					BufferedReader in = new BufferedReader(reader);
-					int length = 1;
-					int offset = 0;
 					while (true) {
 						try {
-							char[] cbuf = new char[stream.available()];
-							in.read(cbuf, offset, length);
-							while (cbuf[0] != (char) 0) {
-								byteStr.append(cbuf[0]);
-								offset++;
+							String line = in.readLine();
+							while (line != null && line.length() > 0) {
+								byteStr.append(line);
+								line = in.readLine();
 							}
 							if (byteStr.length() > 0) {
 								message += "[Success]" + byteStr.toString()
