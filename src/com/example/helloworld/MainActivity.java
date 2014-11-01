@@ -1,8 +1,7 @@
 package com.example.helloworld;
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -95,9 +94,6 @@ public class MainActivity extends Activity {
 		// Send Action
 		@Override
 		public void onClick(View v) {
-			// String address = editTextAddress.toString();
-			// String strPort = editTextPort.toString();
-			// int port = Integer.parseInt(strPort);
 
 			Socket socket = null;
 
@@ -112,12 +108,7 @@ public class MainActivity extends Activity {
 							+ "\n Socket cannot Connect!");
 				}
 
-				String sendMessage = "PrintWriter : Message by Android";
-
-				PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-				pw.println(sendMessage);
-
-				sendMessage = "DataOutputStream : Message by Android";
+				String sendMessage = "DataOutputStream : Message by Android<EOF>";
 				DataOutputStream out = new DataOutputStream(
 						socket.getOutputStream());
 				out.writeBytes(sendMessage);
@@ -145,12 +136,6 @@ public class MainActivity extends Activity {
 				}
 			}
 		}
-		// public void onClick(View arg0) {
-		// MyClientTask myClientTask = new MyClientTask(editTextAddress
-		// .getText().toString(), Integer.parseInt(editTextPort
-		// .getText().toString()));
-		// myClientTask.execute();
-		// }
 	};
 
 	/**
@@ -199,23 +184,6 @@ public class MainActivity extends Activity {
 					textResponse.setText(textResponse.getText()
 							+ "\n Socket cannot Connect!");
 				}
-
-				// ByteArrayOutputStream byteArrayOutputStream = new
-				// ByteArrayOutputStream(
-				// 1024);
-				// byte[] buffer = new byte[1024];
-				//
-				// int bytesRead;
-				// InputStream inputStream = socket.getInputStream();
-
-				//
-				// /*
-				// * notice: inputStream.read() will block if no data return
-				// */
-				// while ((bytesRead = inputStream.read(buffer)) != -1) {
-				// byteArrayOutputStream.write(buffer, 0, bytesRead);
-				// response += byteArrayOutputStream.toString("UTF-8");
-				// }
 
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -272,13 +240,20 @@ public class MainActivity extends Activity {
 					message += "#" + count + " from " + socket.getInetAddress()
 							+ ":" + socket.getPort() + "\n say: ";
 
-					BufferedReader in = new BufferedReader(
-							new InputStreamReader(socket.getInputStream()));
-					String request = in.readLine();
-					if (request != null) {
-						// save msg
-						message += "[Success]" + request + "\n";
+					byte buffer[] = new byte[1024];
+					InputStream stream = socket.getInputStream();
+					int length;
+
+					while (true) {
+						length = stream.read(buffer);
+						if (length > 0) {
+							message += "[Success]"
+									+ new String(buffer, 0, length) + "\n";
+						} else {
+							break;
+						}
 					}
+
 					MainActivity.this.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -300,7 +275,6 @@ public class MainActivity extends Activity {
 				textResponse.setText(e.getMessage());
 			}
 		}
-
 	}
 	private class SocketServerReplyThread extends Thread {
 
