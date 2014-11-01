@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import android.app.Activity;
@@ -236,6 +237,8 @@ public class MainActivity extends Activity {
 
 				while (true) {
 					Socket socket = mServer.accept();
+					socket.setSoTimeout(3000);
+
 					count++;
 					message += "#" + count + " from " + socket.getInetAddress()
 							+ ":" + socket.getPort() + "\n say: ";
@@ -245,11 +248,16 @@ public class MainActivity extends Activity {
 					int length;
 
 					while (true) {
-						length = stream.read(buffer);
-						if (length > 0) {
-							message += "[Success]"
-									+ new String(buffer, 0, length) + "\n";
-						} else {
+						try {
+							length = stream.read(buffer);
+							if (length > 0) {
+								message += "[Success]"
+										+ new String(buffer, 0, length) + "\n";
+							} else {
+								break;
+							}
+						} catch (SocketTimeoutException ex) {
+							message += "[Info] TimeOut\n";
 							break;
 						}
 					}
