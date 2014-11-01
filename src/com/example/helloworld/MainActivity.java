@@ -1,7 +1,9 @@
 package com.example.helloworld;
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -243,17 +245,23 @@ public class MainActivity extends Activity {
 					message += "#" + count + " from " + socket.getInetAddress()
 							+ ":" + socket.getPort() + "\n say: ";
 
+					StringBuilder byteStr = new StringBuilder();
 					InputStream stream = socket.getInputStream();
-					int length;
-
+					InputStreamReader reader = new InputStreamReader(stream);
+					BufferedReader in = new BufferedReader(reader);
+					int length = 1;
+					int offset = 0;
 					while (true) {
 						try {
-							byte buffer[] = new byte[socket
-									.getReceiveBufferSize()];
-							length = stream.read(buffer);
-							if (length > 0) {
-								message += "[Success]"
-										+ new String(buffer, 0, length) + "\n";
+							char[] cbuf = new char[stream.available()];
+							in.read(cbuf, offset, length);
+							while (cbuf[0] != (char) 0) {
+								byteStr.append(cbuf[0]);
+								offset++;
+							}
+							if (byteStr.length() > 0) {
+								message += "[Success]" + byteStr.toString()
+										+ "\n";
 							} else {
 								break;
 							}
