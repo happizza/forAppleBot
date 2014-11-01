@@ -1,5 +1,6 @@
 package com.example.helloworld;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -27,7 +28,7 @@ public class MainActivity extends Activity {
 
 	static final int SocketServerPORT = 8080;
 	static final String sendTextAddress = "192.168.0.101";
-	static final String sendTextPort = "4510";
+	static final int sendTextPort = 4510;
 
 	private ServerSocket mServer;
 	// private Socket mSocket;
@@ -63,8 +64,8 @@ public class MainActivity extends Activity {
 		buttonClear = (Button) findViewById(R.id.clear);
 		textResponse = (TextView) findViewById(R.id.response);
 
-		editTextAddress.setText(sendTextAddress);
-		editTextPort.setText(sendTextPort);
+		// editTextAddress.setText(sendTextAddress);
+		// editTextPort.setText(sendTextPort);
 
 		buttonConnect.setOnClickListener(buttonConnectOnClickListener);
 
@@ -94,14 +95,14 @@ public class MainActivity extends Activity {
 		// Send Action
 		@Override
 		public void onClick(View v) {
-			String address = editTextAddress.toString();
-			String strPort = editTextPort.toString();
-			int port = Integer.parseInt(strPort);
+			// String address = editTextAddress.toString();
+			// String strPort = editTextPort.toString();
+			// int port = Integer.parseInt(strPort);
 
 			Socket socket = null;
 
 			try {
-				socket = new Socket(address, port);
+				socket = new Socket(sendTextAddress, sendTextPort);
 
 				if (socket.isConnected()) {
 					textResponse.setText(textResponse.getText()
@@ -111,10 +112,15 @@ public class MainActivity extends Activity {
 							+ "\n Socket cannot Connect!");
 				}
 
-				PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-				String sendMessage = "Message by Android";;
+				String sendMessage = "PrintWriter : Message by Android";
 
+				PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 				pw.println(sendMessage);
+
+				sendMessage = "DataOutputStream : Message by Android";
+				DataOutputStream out = new DataOutputStream(
+						socket.getOutputStream());
+				out.writeBytes(sendMessage);
 
 			} catch (UnknownHostException e) {
 				textResponse.setText(textResponse.getText()
