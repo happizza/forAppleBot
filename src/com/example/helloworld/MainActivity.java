@@ -231,13 +231,9 @@ public class MainActivity extends Activity {
 	 String request = in.readLine();
 	 if (request != null){
 		 //save msg
-		 if (request.matches("^\\+OK.*$")==false){
-	         message += "[Fail]"+ request + "\n";
-		 }else{
-	         message += "[Success]"+ request + "\n";
-		 }
+	     message += "[Success]"+ request + "\n";
+		 in.close();
 	 }
-	 
      MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -258,7 +254,7 @@ public class MainActivity extends Activity {
 	 e.printStackTrace();
    	 textResponse.setText(e.getMessage());
    }
-  }
+}
 
  }
  private class SocketServerReplyThread extends Thread {
