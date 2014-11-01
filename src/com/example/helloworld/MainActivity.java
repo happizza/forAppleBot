@@ -228,10 +228,14 @@ public class MainActivity extends Activity {
 
 
 	 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	 String request;
-	 while (in!=null && (request = in.readLine()) != null){
+	 String request = in.readLine();
+	 if (request != null){
 		 //save msg
-		 message += request+"\n";
+		 if (request.matches("^\\+OK.*$")==false){
+	         message += "[Fail]"+ request + "\n";
+		 }else{
+	         message += "[Success]"+ request + "\n";
+		 }
 	 }
 	 
      MainActivity.this.runOnUiThread(new Runnable() {
@@ -248,7 +252,11 @@ public class MainActivity extends Activity {
     }
    } catch (IOException e) {
     // TODO Auto-generated catch block
-    e.printStackTrace();
+     e.printStackTrace();
+  	 textResponse.setText(e.getMessage());
+   } catch (Exception e){
+	 e.printStackTrace();
+   	 textResponse.setText(e.getMessage());
    }
   }
 
