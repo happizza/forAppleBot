@@ -1,10 +1,10 @@
 package com.example.helloworld;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -26,8 +26,8 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 
 	static final int SocketServerPORT = 8080;
-	static final String sendTextAddress = "";
-	static final String sendTextPort = "";
+	static final String sendTextAddress = "192.168.0.101";
+	static final String sendTextPort = "4510";
 
 	private ServerSocket mServer;
 	// private Socket mSocket;
@@ -133,12 +133,15 @@ public class MainActivity extends Activity {
 					textResponse.setText(textResponse.getText()
 							+ "\n Socket Connected!");
 
-					DataOutputStream out = new DataOutputStream(
-							socket.getOutputStream());
+					// DataOutputStream out = new DataOutputStream(
+					// socket.getOutputStream());
+					PrintWriter pw = new PrintWriter(socket.getOutputStream(),
+							true);
 
 					// Send Message
 					String sendMessage = "Message by Android";
-					out.writeUTF(sendMessage);
+					// out.writeUTF(sendMessage);
+					pw.println(sendMessage);
 
 				} else {
 					textResponse.setText(textResponse.getText()
@@ -164,12 +167,14 @@ public class MainActivity extends Activity {
 
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
+				textResponse.setText(textResponse.getText()
+						+ "\n UnknownHostException: " + e.toString());
 				e.printStackTrace();
-				response = "UnknownHostException: " + e.toString();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				textResponse.setText(textResponse.getText()
+						+ "\n IOException: " + e.toString());
 				e.printStackTrace();
-				response = "IOException: " + e.toString();
 			} finally {
 				if (socket != null) {
 					try {
@@ -188,7 +193,6 @@ public class MainActivity extends Activity {
 
 		@Override
 		protected void onPostExecute(Void result) {
-			textResponse.setText(response);
 			super.onPostExecute(result);
 		}
 	}
