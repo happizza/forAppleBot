@@ -1,7 +1,9 @@
 package com.example.helloworld;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.ServerSocket;
@@ -224,11 +226,19 @@ public class MainActivity extends Activity {
      message += "#" + count + " from " + socket.getInetAddress()
        + ":" + socket.getPort() + "\n";
 
-     MainActivity.this.runOnUiThread(new Runnable() {
 
+	 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	 String request;
+	 final StringBuilder messageBuilder = new StringBuilder();
+	 while ((request = in.readLine()) != null){
+		 //save msg
+		 messageBuilder.append(request);
+	 }
+	 
+     MainActivity.this.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-    	textResponse.setText(message);
+    	textResponse.setText(message + " say :" + messageBuilder.toString());
       }
      });
 
