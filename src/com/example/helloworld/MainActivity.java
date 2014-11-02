@@ -1,9 +1,9 @@
 package com.example.helloworld;
-import java.io.BufferedReader;
+
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -245,19 +245,27 @@ public class MainActivity extends Activity {
 					message += "#" + count + " from " + socket.getInetAddress()
 							+ ":" + socket.getPort() + "\n say: ";
 
-					StringBuilder byteStr = new StringBuilder();
 					InputStream stream = socket.getInputStream();
-					InputStreamReader reader = new InputStreamReader(stream);
-					BufferedReader in = new BufferedReader(reader);
+					byte[] buffer = new byte[1024];
+					ByteArrayOutputStream bout = new ByteArrayOutputStream();
+					// StringBuilder byteStr = new StringBuilder();
+					// InputStreamReader reader = new InputStreamReader(stream);
+					// BufferedReader in = new BufferedReader(reader);
 					while (true) {
 						try {
-							String line = in.readLine();
-							while (line != null && line.length() > 0) {
-								byteStr.append(line);
-								line = in.readLine();
+							int len = stream.read(buffer);
+
+							// while (line != null && line.length() > 0) {
+							// byteStr.append(line);
+							// line = in.readLine();
+							// }
+							if (len < 0) {
+								break;
 							}
-							if (byteStr.length() > 0) {
-								message += "[Success]" + byteStr.toString()
+							bout.write(buffer, 0, len);
+							if (len > 0) {
+								byte[] data = bout.toByteArray();
+								message += "[Success]" + new String(data)
 										+ "\n";
 							} else {
 								break;
@@ -290,6 +298,7 @@ public class MainActivity extends Activity {
 			}
 		}
 	}
+
 	private class SocketServerReplyThread extends Thread {
 
 		private Socket hostThreadSocket;
