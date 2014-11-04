@@ -106,11 +106,21 @@ public class MainActivity extends Activity {
 				socket = new Socket(sendTextAddress, sendTextPort);
 				socket.setSoTimeout(2000);
 				if (socket.isConnected()) {
-					textResponse.setText(textResponse.getText()
-							+ "\n Socket Connected!");
+					MainActivity.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							textResponse.setText(textResponse.getText()
+									+ "\n Socket Connected!");
+						}
+					});
 				} else {
-					textResponse.setText(textResponse.getText()
-							+ "\n Socket cannot Connect!");
+					MainActivity.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							textResponse.setText(textResponse.getText()
+									+ "\n Socket cannot Connect!");
+						}
+					});
 				}
 
 				String sendMessage = "DataOutputStream : Message by Android<EOF>";
@@ -119,13 +129,25 @@ public class MainActivity extends Activity {
 				out.writeBytes(sendMessage);
 
 			} catch (UnknownHostException e) {
-				textResponse.setText(textResponse.getText()
-						+ "\n UnknownHostException: " + e.toString());
+
+				e.printStackTrace();
+				message += e.toString();
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(message);
+					}
+				});
 				e.printStackTrace();
 			} catch (IOException e) {
-				textResponse.setText(textResponse.getText()
-						+ "\n IOException: " + e.toString());
 				e.printStackTrace();
+				message += e.toString();
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(message);
+					}
+				});
 			}
 
 			boolean havemsg = false;
@@ -141,12 +163,17 @@ public class MainActivity extends Activity {
 								sb.append((char) ch);
 								havemsg = true;
 							}
-							textResponse.setText(textResponse.getText()
-									+ "\n "+sb.toString());
+							message += sb.toString();
+							MainActivity.this.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									textResponse.setText(message);
+								}
+							});
 						} catch (SocketTimeoutException e){
 						} catch (IOException e) {
-							textResponse.setText(textResponse.getText()
-									+ "\n IOException: " + e.toString());
+							message += e.toString();
+							textResponse.setText(message);
 							e.printStackTrace();
 						}
 					}
@@ -156,8 +183,13 @@ public class MainActivity extends Activity {
 				}
 			}
 			try {
-				textResponse.setText(textResponse.getText()
-						+ "\n socket close");
+				message += "\n socket close";
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(message);
+					}
+				});
 				socket.close();
 				socket = null;
 			} catch (IOException e) {
