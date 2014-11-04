@@ -1,6 +1,7 @@
 package com.example.helloworld;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,6 +129,10 @@ public class MainActivity extends Activity {
 
 			if (socket != null) {
 				try {
+					DataInputStream response = new DataInputStream(socket.getInputStream());
+					;
+					textResponse.setText(textResponse.getText()
+							+ "\n "+DataInputStream.readUTF(response));
 					textResponse.setText(textResponse.getText()
 							+ "\n socket close");
 					socket.close();
