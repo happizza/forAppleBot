@@ -101,10 +101,10 @@ public class MainActivity extends Activity {
 		public void onClick(View v) {
 
 			Socket socket = null;
-
 			//request
 			try {
 				socket = new Socket(sendTextAddress, sendTextPort);
+				socket.setSoTimeout(2000);
 				if (socket.isConnected()) {
 					textResponse.setText(textResponse.getText()
 							+ "\n Socket Connected!");
@@ -127,41 +127,41 @@ public class MainActivity extends Activity {
 						+ "\n IOException: " + e.toString());
 				e.printStackTrace();
 			}
-			
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-			//response
-			if (socket != null) {
-				try {
-					StringBuffer sb = new StringBuffer();
-					int ch;
-					while((ch = socket.getInputStream().read()) != -1){
-						sb.append((char) ch);
+
+			boolean havemsg = false;
+			while(!havemsg) {
+				try{
+					Thread.sleep(1000);
+					//response
+					if (socket != null) {
+						try {
+							StringBuffer sb = new StringBuffer();
+							int ch;
+							while((ch = socket.getInputStream().read()) != -1){
+								sb.append((char) ch);
+								havemsg = true;
+							}
+							textResponse.setText(textResponse.getText()
+									+ "\n "+sb.toString());
+						} catch (SocketTimeoutException e){
+						} catch (IOException e) {
+							textResponse.setText(textResponse.getText()
+									+ "\n IOException: " + e.toString());
+							e.printStackTrace();
+						}
 					}
-					textResponse.setText(textResponse.getText()
-							+ "\n "+sb.toString());
-				} catch (SocketTimeoutException e){
-					textResponse.setText(textResponse.getText()
-							+ "\n SocketTimeoutException: " + e.toString());
-				} catch (IOException e) {
-					textResponse.setText(textResponse.getText()
-							+ "\n IOException: " + e.toString());
-					e.printStackTrace();
-				} finally{
-					try {
-						textResponse.setText(textResponse.getText()
-								+ "\n socket close");
-						socket.close();
-						socket = null;
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
+			}
+			try {
+				textResponse.setText(textResponse.getText()
+						+ "\n socket close");
+				socket.close();
+				socket = null;
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	};
