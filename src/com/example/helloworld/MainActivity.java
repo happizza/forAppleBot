@@ -41,6 +41,7 @@ public class MainActivity extends Activity {
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
 	String message = "";
+	Thread runner;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +58,7 @@ public class MainActivity extends Activity {
 		myip = (TextView) findViewById(R.id.myAddr);
 		myip.setText(ipAddressStr);
 
-		Thread runner = new Thread(new SocketServerThread());
+		runner = new Thread(new SocketServerThread());
 		runner.start();
 
 		// Send
@@ -104,7 +105,6 @@ public class MainActivity extends Activity {
 			//request
 			try {
 				socket = new Socket(sendTextAddress, sendTextPort);
-				socket.setSoTimeout(3000);
 				if (socket.isConnected()) {
 					textResponse.setText(textResponse.getText()
 							+ "\n Socket Connected!");
@@ -126,6 +126,13 @@ public class MainActivity extends Activity {
 				textResponse.setText(textResponse.getText()
 						+ "\n IOException: " + e.toString());
 				e.printStackTrace();
+			}
+			
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 			
 			//response
