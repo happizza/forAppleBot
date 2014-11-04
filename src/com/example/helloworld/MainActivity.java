@@ -101,9 +101,10 @@ public class MainActivity extends Activity {
 
 			Socket socket = null;
 
+			//request
 			try {
 				socket = new Socket(sendTextAddress, sendTextPort);
-
+				socket.setSoTimeout(3000);
 				if (socket.isConnected()) {
 					textResponse.setText(textResponse.getText()
 							+ "\n Socket Connected!");
@@ -126,21 +127,33 @@ public class MainActivity extends Activity {
 						+ "\n IOException: " + e.toString());
 				e.printStackTrace();
 			}
-
+			
+			//response
 			if (socket != null) {
 				try {
-					DataInputStream response = new DataInputStream(socket.getInputStream());
-					;
+					StringBuffer sb = new StringBuffer();
+					int ch;
+					while((ch = socket.getInputStream().read()) != -1){
+						sb.append((char) ch);
+					}
 					textResponse.setText(textResponse.getText()
-							+ "\n "+DataInputStream.readUTF(response));
+							+ "\n "+sb.toString());
+				} catch (SocketTimeoutException e){
 					textResponse.setText(textResponse.getText()
-							+ "\n socket close");
-					socket.close();
-					socket = null;
+							+ "\n SocketTimeoutException: " + e.toString());
 				} catch (IOException e) {
 					textResponse.setText(textResponse.getText()
 							+ "\n IOException: " + e.toString());
 					e.printStackTrace();
+				} finally{
+					try {
+						textResponse.setText(textResponse.getText()
+								+ "\n socket close");
+						socket.close();
+						socket = null;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -175,8 +188,13 @@ public class MainActivity extends Activity {
 
 				// check connection
 				if (socket.isConnected()) {
-					textResponse.setText(textResponse.getText()
-							+ "\n Socket Connected!");
+					MainActivity.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							textResponse.setText(textResponse.getText()
+									+ "\n Socket Connected!");
+						}
+					});
 
 					// DataOutputStream out = new DataOutputStream(
 					// socket.getOutputStream());
@@ -189,25 +207,47 @@ public class MainActivity extends Activity {
 					pw.println(sendMessage);
 
 				} else {
-					textResponse.setText(textResponse.getText()
-							+ "\n Socket cannot Connect!");
+					MainActivity.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							textResponse.setText(textResponse.getText()
+									+ "\n Socket cannot Connect!");
+						}
+					});
 				}
 
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
-				textResponse.setText(textResponse.getText()
-						+ "\n UnknownHostException: " + e.toString());
+				message += e.toString();
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(textResponse.getText()
+								+ "\n UnknownHostException: " + message);
+					}
+				});
 				e.printStackTrace();
 			} catch (IOException e) {
+				message += e.toString();
 				// TODO Auto-generated catch block
-				textResponse.setText(textResponse.getText()
-						+ "\n IOException: " + e.toString());
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(textResponse.getText()
+								+ "\n IOException: " + message.toString());
+					}
+				});
 				e.printStackTrace();
 			} finally {
 				if (socket != null) {
 					try {
-						textResponse.setText(textResponse.getText()
-								+ "\n socket close");
+						MainActivity.this.runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								textResponse.setText(textResponse.getText()
+										+ "\n socket close");
+							}
+						});
 						// socket close
 						socket.close();
 					} catch (IOException e) {
