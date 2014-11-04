@@ -291,10 +291,22 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				textResponse.setText(e.getMessage());
+				message = e.getMessage();
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(message);
+					}
+				});
 			} catch (Exception e) {
 				e.printStackTrace();
-				textResponse.setText(e.getMessage());
+				message = e.getMessage();
+				MainActivity.this.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						textResponse.setText(message);
+					}
+				});
 			}
 		}
 	}
@@ -337,7 +349,6 @@ public class MainActivity extends Activity {
 			}
 
 			MainActivity.this.runOnUiThread(new Runnable() {
-
 				@Override
 				public void run() {
 					textResponse.setText(message);
