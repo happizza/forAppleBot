@@ -36,12 +36,13 @@ public class MainActivity extends Activity {
 	private ServerSocket mServer;
 	// private Socket mSocket;
 	// recv port
-	Handler mHandler = new Handler();
-	TextView myip, textResponse;
+	TextView myip;
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
 	String message = "";
 	Thread runner;
+	TextView textResponse = (TextView) findViewById(R.id.response);
+	Handler mHandler = new Handler();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +107,7 @@ public class MainActivity extends Activity {
 				socket = new Socket(sendTextAddress, sendTextPort);
 				socket.setSoTimeout(2000);
 				if (socket.isConnected()) {
-					MainActivity.this.runOnUiThread(new Runnable() {
+					mHandler.post(new Runnable(){
 						@Override
 						public void run() {
 							textResponse.setText(textResponse.getText()
@@ -114,7 +115,7 @@ public class MainActivity extends Activity {
 						}
 					});
 				} else {
-					MainActivity.this.runOnUiThread(new Runnable() {
+					mHandler.post(new Runnable(){
 						@Override
 						public void run() {
 							textResponse.setText(textResponse.getText()
@@ -132,7 +133,7 @@ public class MainActivity extends Activity {
 
 				e.printStackTrace();
 				message += e.toString();
-				MainActivity.this.runOnUiThread(new Runnable() {
+				mHandler.post(new Runnable(){
 					@Override
 					public void run() {
 						textResponse.setText(message);
@@ -142,7 +143,7 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 				message += e.toString();
-				MainActivity.this.runOnUiThread(new Runnable() {
+				mHandler.post(new Runnable(){
 					@Override
 					public void run() {
 						textResponse.setText(message);
@@ -152,8 +153,8 @@ public class MainActivity extends Activity {
 
 			boolean havemsg = false;
 			while(!havemsg) {
-				try{
-					Thread.sleep(1000);
+//				try{
+					//Thread.sleep(1000);
 					//response
 					if (socket != null) {
 						try {
@@ -164,7 +165,7 @@ public class MainActivity extends Activity {
 								havemsg = true;
 							}
 							message += sb.toString();
-							MainActivity.this.runOnUiThread(new Runnable() {
+							mHandler.post(new Runnable(){
 								@Override
 								public void run() {
 									textResponse.setText(message);
@@ -173,18 +174,23 @@ public class MainActivity extends Activity {
 						} catch (SocketTimeoutException e){
 						} catch (IOException e) {
 							message += e.toString();
-							textResponse.setText(message);
+							mHandler.post(new Runnable(){
+								@Override
+								public void run() {
+									textResponse.setText(message);
+								}
+							});
 							e.printStackTrace();
 						}
 					}
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+//				} catch (InterruptedException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
 			}
 			try {
 				message += "\n socket close";
-				MainActivity.this.runOnUiThread(new Runnable() {
+				mHandler.post(new Runnable(){
 					@Override
 					public void run() {
 						textResponse.setText(message);
