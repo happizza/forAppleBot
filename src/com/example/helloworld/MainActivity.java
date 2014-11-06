@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
 
 	static final int SocketServerPORT = 8080;
 	static final String sendTextAddress = "192.168.0.101";
-	static final int sendTextPort = 4510;
+	static final String sendTextPort = "4510";
 
 	private ServerSocket mServer;
 	// private Socket mSocket;
@@ -117,8 +117,7 @@ public class MainActivity extends Activity {
 	private void connectSocketIO() throws MalformedURLException {
 
 		socketIO = new SocketIO("http://" + sendTextAddress + ":"
-				+ String.valueOf(sendTextPort) + "/");
-
+				+ sendTextPort + "/");
 		socketIO.connect(new IOCallback() {
 			@Override
 			public void onMessage(JSONObject json, IOAcknowledge ack) {
@@ -142,9 +141,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onError(SocketIOException socketIOException) {
 				message = "an Error occured";
-				textResponse.setText("an Error occured");
 				socketIOException.printStackTrace();
 				execute(Looper.getMainLooper());
+				socketIO.reconnect();
 			}
 
 			@Override
