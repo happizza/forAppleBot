@@ -5,16 +5,9 @@ import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,9 +15,9 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -45,7 +38,7 @@ public class MainActivity extends Activity {
 	Button buttonConnect, buttonClear;
 	String message = "";
 	// Thread runner;
-	Handler mHandler = new Handler();
+	Handler mHandler;
 	SocketIO socketIO;
 
 	@Override
@@ -111,270 +104,287 @@ public class MainActivity extends Activity {
 			}
 		}
 	}
+	public void execute(Looper toLooper) {
+
+		new Handler(toLooper).post(new Runnable() {
+			public void run() {
+				textResponse.setText(message);
+				return;
+			}
+		});
+	}
 
 	private void connectSocketIO() throws MalformedURLException {
+
 		socketIO = new SocketIO("http://" + sendTextAddress + ":"
 				+ String.valueOf(sendTextPort) + "/");
+
 		socketIO.connect(new IOCallback() {
 			@Override
 			public void onMessage(JSONObject json, IOAcknowledge ack) {
 				try {
-					textResponse.setText("Server said:" + json.toString(2));
+					message = "Server said:" + json.toString(2);
 					System.out.println("Server said:" + json.toString(2));
+					execute(Looper.getMainLooper());
 				} catch (JSONException e) {
-					textResponse.setText(e.toString());
+					message = e.toString();
 					e.printStackTrace();
 				}
 			}
 
 			@Override
 			public void onMessage(String data, IOAcknowledge ack) {
-				textResponse.setText("Server said:" + data);
+				message = "Server said:" + data;
 				System.out.println("Server said: " + data);
+				execute(Looper.getMainLooper());
 			}
 
 			@Override
 			public void onError(SocketIOException socketIOException) {
-				System.out.println("an Error occured");
+				message = "an Error occured";
 				textResponse.setText("an Error occured");
 				socketIOException.printStackTrace();
+				execute(Looper.getMainLooper());
 			}
 
 			@Override
 			public void onDisconnect() {
-				textResponse.setText("Connection terminated.");
+				message = "Connection terminated.";
 				System.out.println("Connection terminated.");
+				execute(Looper.getMainLooper());
 			}
 
 			@Override
 			public void onConnect() {
-				textResponse.setText("Connection established");
+				message = "Connection established";
 				System.out.println("Connection established");
+				execute(Looper.getMainLooper());
 			}
 
 			@Override
 			public void on(String event, IOAcknowledge ack, Object... args) {
-				textResponse.setText("Server triggered event '" + event + "'");
+				message = "Server triggered event '" + event + "'";
 				System.out.println("Server triggered event '" + event + "'");
+				execute(Looper.getMainLooper());
 			}
 		});
 
 		socketIO.send("Hello Server!");
 	}
 
-	OnClickListener buttonConnectOnClickListener = new OnClickListener() {
-		// Send Action
-		@Override
-		public void onClick(View v) {
+	// OnClickListener buttonConnectOnClickListener = new OnClickListener() {
+	// // Send Action
+	// @Override
+	// public void onClick(View v) {
+	//
+	// Socket socket = null;
+	// // request
+	// try {
+	// socket = new Socket(sendTextAddress, sendTextPort);
+	// socket.setSoTimeout(10000);
+	// if (socket.isConnected()) {
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n Socket Connected!");
+	// }
+	// });
+	// } else {
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n Socket cannot Connect!");
+	// }
+	// });
+	// }
+	//
+	// String sendMessage = "DataOutputStream : Message by Android<EOF>";
+	// DataOutputStream out = new DataOutputStream(
+	// socket.getOutputStream());
+	// out.writeBytes(sendMessage);
+	//
+	// } catch (UnknownHostException e) {
+	//
+	// e.printStackTrace();
+	// message += e.toString();
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// e.printStackTrace();
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// message += e.toString();
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// }
+	//
+	// boolean havemsg = false;
+	// while (!havemsg) {
+	// // try{
+	// // Thread.sleep(1000);
+	// // response
+	// if (socket != null) {
+	// try {
+	// StringBuffer sb = new StringBuffer();
+	// int ch;
+	// while ((ch = socket.getInputStream().read()) != -1) {
+	// sb.append((char) ch);
+	// havemsg = true;
+	// }
+	// message += sb.toString();
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// } catch (SocketTimeoutException e) {
+	// } catch (IOException e) {
+	// message += e.toString();
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// e.printStackTrace();
+	// }
+	// }
+	// // } catch (InterruptedException e1) {
+	// // // TODO Auto-generated catch block
+	// // e1.printStackTrace();
+	// // }
+	// }
+	// try {
+	// message += "\n socket close";
+	// mHandler.post(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// socket.close();
+	// socket = null;
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// };
 
-			Socket socket = null;
-			// request
-			try {
-				socket = new Socket(sendTextAddress, sendTextPort);
-				socket.setSoTimeout(10000);
-				if (socket.isConnected()) {
-					mHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							textResponse.setText(textResponse.getText()
-									+ "\n Socket Connected!");
-						}
-					});
-				} else {
-					mHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							textResponse.setText(textResponse.getText()
-									+ "\n Socket cannot Connect!");
-						}
-					});
-				}
-
-				String sendMessage = "DataOutputStream : Message by Android<EOF>";
-				DataOutputStream out = new DataOutputStream(
-						socket.getOutputStream());
-				out.writeBytes(sendMessage);
-
-			} catch (UnknownHostException e) {
-
-				e.printStackTrace();
-				message += e.toString();
-				mHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-				message += e.toString();
-				mHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-			}
-
-			boolean havemsg = false;
-			while (!havemsg) {
-				// try{
-				// Thread.sleep(1000);
-				// response
-				if (socket != null) {
-					try {
-						StringBuffer sb = new StringBuffer();
-						int ch;
-						while ((ch = socket.getInputStream().read()) != -1) {
-							sb.append((char) ch);
-							havemsg = true;
-						}
-						message += sb.toString();
-						mHandler.post(new Runnable() {
-							@Override
-							public void run() {
-								textResponse.setText(message);
-							}
-						});
-					} catch (SocketTimeoutException e) {
-					} catch (IOException e) {
-						message += e.toString();
-						mHandler.post(new Runnable() {
-							@Override
-							public void run() {
-								textResponse.setText(message);
-							}
-						});
-						e.printStackTrace();
-					}
-				}
-				// } catch (InterruptedException e1) {
-				// // TODO Auto-generated catch block
-				// e1.printStackTrace();
-				// }
-			}
-			try {
-				message += "\n socket close";
-				mHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-				socket.close();
-				socket = null;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	};
-
-	/**
-	 * Send to bot method
-	 */
-	public class MyClientTask extends AsyncTask<Void, Void, Void> {
-
-		String dstAddress;
-		int dstPort;
-		String response = "";
-
-		MyClientTask(String addr, int port) {
-			dstAddress = addr;
-			dstPort = port;
-		}
-
-		@Override
-		protected Void doInBackground(Void... arg0) {
-			int timeout = 2000;
-			Socket socket = null;
-
-			try {
-				socket = new Socket();
-				InetSocketAddress sc_add = new InetSocketAddress(
-						InetAddress.getByName(dstAddress), dstPort);
-
-				// create connection
-				socket.connect(sc_add, timeout);
-
-				// check connection
-				if (socket.isConnected()) {
-					MainActivity.this.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							textResponse.setText(textResponse.getText()
-									+ "\n Socket Connected!");
-						}
-					});
-
-					// DataOutputStream out = new DataOutputStream(
-					// socket.getOutputStream());
-					PrintWriter pw = new PrintWriter(socket.getOutputStream(),
-							true);
-
-					// Send Message
-					String sendMessage = "Message by Android";
-					// out.writeUTF(sendMessage);
-					pw.println(sendMessage);
-
-				} else {
-					MainActivity.this.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							textResponse.setText(textResponse.getText()
-									+ "\n Socket cannot Connect!");
-						}
-					});
-				}
-
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				message += e.toString();
-				MainActivity.this.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(textResponse.getText()
-								+ "\n UnknownHostException: " + message);
-					}
-				});
-				e.printStackTrace();
-			} catch (IOException e) {
-				message += e.toString();
-				// TODO Auto-generated catch block
-				MainActivity.this.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(textResponse.getText()
-								+ "\n IOException: " + message.toString());
-					}
-				});
-				e.printStackTrace();
-			} finally {
-				if (socket != null) {
-					try {
-						MainActivity.this.runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								textResponse.setText(textResponse.getText()
-										+ "\n socket close");
-							}
-						});
-						// socket close
-						socket.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-		}
-	}
+	// /**
+	// * Send to bot method
+	// */
+	// public class MyClientTask extends AsyncTask<Void, Void, Void> {
+	//
+	// String dstAddress;
+	// int dstPort;
+	// String response = "";
+	//
+	// MyClientTask(String addr, int port) {
+	// dstAddress = addr;
+	// dstPort = port;
+	// }
+	//
+	// @Override
+	// protected Void doInBackground(Void... arg0) {
+	// int timeout = 2000;
+	// Socket socket = null;
+	//
+	// try {
+	// socket = new Socket();
+	// InetSocketAddress sc_add = new InetSocketAddress(
+	// InetAddress.getByName(dstAddress), dstPort);
+	//
+	// // create connection
+	// socket.connect(sc_add, timeout);
+	//
+	// // check connection
+	// if (socket.isConnected()) {
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n Socket Connected!");
+	// }
+	// });
+	//
+	// // DataOutputStream out = new DataOutputStream(
+	// // socket.getOutputStream());
+	// PrintWriter pw = new PrintWriter(socket.getOutputStream(),
+	// true);
+	//
+	// // Send Message
+	// String sendMessage = "Message by Android";
+	// // out.writeUTF(sendMessage);
+	// pw.println(sendMessage);
+	//
+	// } else {
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n Socket cannot Connect!");
+	// }
+	// });
+	// }
+	//
+	// } catch (UnknownHostException e) {
+	// // TODO Auto-generated catch block
+	// message += e.toString();
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n UnknownHostException: " + message);
+	// }
+	// });
+	// e.printStackTrace();
+	// } catch (IOException e) {
+	// message += e.toString();
+	// // TODO Auto-generated catch block
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n IOException: " + message.toString());
+	// }
+	// });
+	// e.printStackTrace();
+	// } finally {
+	// if (socket != null) {
+	// try {
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(textResponse.getText()
+	// + "\n socket close");
+	// }
+	// });
+	// // socket close
+	// socket.close();
+	// } catch (IOException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// }
+	// }
+	// return null;
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(Void result) {
+	// super.onPostExecute(result);
+	// }
+	// }
 	//
 	// private class SocketServerThread extends Thread {
 	//
