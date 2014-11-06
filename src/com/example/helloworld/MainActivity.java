@@ -5,12 +5,8 @@ import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -48,7 +44,7 @@ public class MainActivity extends Activity {
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
 	String message = "";
-	Thread runner;
+	// Thread runner;
 	Handler mHandler = new Handler();
 	SocketIO socketIO;
 
@@ -67,8 +63,8 @@ public class MainActivity extends Activity {
 		myip = (TextView) findViewById(R.id.myAddr);
 		myip.setText(ipAddressStr);
 
-		runner = new Thread(new SocketServerThread());
-		runner.start();
+		// runner = new Thread(new SocketServerThread());
+		// runner.start();
 
 		// Send
 		editTextAddress = (EditText) findViewById(R.id.address);
@@ -379,142 +375,143 @@ public class MainActivity extends Activity {
 			super.onPostExecute(result);
 		}
 	}
-
-	private class SocketServerThread extends Thread {
-
-		int count = 0;
-
-		@Override
-		public void run() {
-			try {
-				mServer = new ServerSocket(SocketServerPORT);
-				MainActivity.this.runOnUiThread(new Runnable() {
-
-					@Override
-					public void run() {
-						textResponse.setText("I'm waiting here: "
-								+ mServer.getLocalPort());
-					}
-				});
-
-				while (true) {
-					Socket socket = mServer.accept();
-					socket.setSoTimeout(3000);
-
-					count++;
-					message += "#" + count + " from " + socket.getInetAddress()
-							+ ":" + socket.getPort() + "\n say: ";
-
-					InputStream stream = socket.getInputStream();
-					byte[] buffer = new byte[1024];
-					ByteArrayOutputStream bout = new ByteArrayOutputStream();
-					// StringBuilder byteStr = new StringBuilder();
-					// InputStreamReader reader = new InputStreamReader(stream);
-					// BufferedReader in = new BufferedReader(reader);
-					while (true) {
-						try {
-							int len = stream.read(buffer);
-
-							// while (line != null && line.length() > 0) {
-							// byteStr.append(line);
-							// line = in.readLine();
-							// }
-							if (len < 0) {
-								break;
-							}
-							bout.write(buffer, 0, len);
-							if (len > 0) {
-								byte[] data = bout.toByteArray();
-								message += "[Success]" + new String(data)
-										+ "\n";
-							} else {
-								break;
-							}
-						} catch (SocketTimeoutException ex) {
-							message += "[Info] TimeOut\n";
-							break;
-						}
-					}
-
-					MainActivity.this.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							textResponse.setText(message);
-						}
-					});
-
-					SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread(
-							socket, count);
-					socketServerReplyThread.run();
-
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				message = e.getMessage();
-				MainActivity.this.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-			} catch (Exception e) {
-				e.printStackTrace();
-				message = e.getMessage();
-				MainActivity.this.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-			}
-		}
-	}
-
-	private class SocketServerReplyThread extends Thread {
-
-		private Socket hostThreadSocket;
-		int cnt;
-
-		SocketServerReplyThread(Socket socket, int c) {
-			hostThreadSocket = socket;
-			cnt = c;
-		}
-
-		@Override
-		public void run() {
-			OutputStream outputStream;
-			String msgReply = "Hello from Android, you are #" + cnt;
-
-			try {
-				outputStream = hostThreadSocket.getOutputStream();
-				PrintStream printStream = new PrintStream(outputStream);
-				printStream.print(msgReply);
-				printStream.close();
-
-				message += "replayed: " + msgReply + "\n";
-
-				MainActivity.this.runOnUiThread(new Runnable() {
-
-					@Override
-					public void run() {
-						textResponse.setText(message);
-					}
-				});
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				message += "Something wrong! " + e.toString() + "\n";
-			}
-
-			MainActivity.this.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					textResponse.setText(message);
-				}
-			});
-		}
-
-	}
+	//
+	// private class SocketServerThread extends Thread {
+	//
+	// int count = 0;
+	//
+	// @Override
+	// public void run() {
+	// try {
+	// mServer = new ServerSocket(SocketServerPORT);
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	//
+	// @Override
+	// public void run() {
+	// textResponse.setText("I'm waiting here: "
+	// + mServer.getLocalPort());
+	// }
+	// });
+	//
+	// while (true) {
+	// Socket socket = mServer.accept();
+	// socket.setSoTimeout(3000);
+	//
+	// count++;
+	// message += "#" + count + " from " + socket.getInetAddress()
+	// + ":" + socket.getPort() + "\n say: ";
+	//
+	// InputStream stream = socket.getInputStream();
+	// byte[] buffer = new byte[1024];
+	// ByteArrayOutputStream bout = new ByteArrayOutputStream();
+	// // StringBuilder byteStr = new StringBuilder();
+	// // InputStreamReader reader = new InputStreamReader(stream);
+	// // BufferedReader in = new BufferedReader(reader);
+	// while (true) {
+	// try {
+	// int len = stream.read(buffer);
+	//
+	// // while (line != null && line.length() > 0) {
+	// // byteStr.append(line);
+	// // line = in.readLine();
+	// // }
+	// if (len < 0) {
+	// break;
+	// }
+	// bout.write(buffer, 0, len);
+	// if (len > 0) {
+	// byte[] data = bout.toByteArray();
+	// message += "[Success]" + new String(data)
+	// + "\n";
+	// } else {
+	// break;
+	// }
+	// } catch (SocketTimeoutException ex) {
+	// message += "[Info] TimeOut\n";
+	// break;
+	// }
+	// }
+	//
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	//
+	// SocketServerReplyThread socketServerReplyThread = new
+	// SocketServerReplyThread(
+	// socket, count);
+	// socketServerReplyThread.run();
+	//
+	// }
+	// } catch (IOException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// message = e.getMessage();
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// message = e.getMessage();
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// }
+	// }
+	// }
+	//
+	// private class SocketServerReplyThread extends Thread {
+	//
+	// private Socket hostThreadSocket;
+	// int cnt;
+	//
+	// SocketServerReplyThread(Socket socket, int c) {
+	// hostThreadSocket = socket;
+	// cnt = c;
+	// }
+	//
+	// @Override
+	// public void run() {
+	// OutputStream outputStream;
+	// String msgReply = "Hello from Android, you are #" + cnt;
+	//
+	// try {
+	// outputStream = hostThreadSocket.getOutputStream();
+	// PrintStream printStream = new PrintStream(outputStream);
+	// printStream.print(msgReply);
+	// printStream.close();
+	//
+	// message += "replayed: " + msgReply + "\n";
+	//
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	//
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	//
+	// } catch (IOException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// message += "Something wrong! " + e.toString() + "\n";
+	// }
+	//
+	// MainActivity.this.runOnUiThread(new Runnable() {
+	// @Override
+	// public void run() {
+	// textResponse.setText(message);
+	// }
+	// });
+	// }
+	//
+	// }
 }
