@@ -1,10 +1,11 @@
 package com.example.helloworld;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -26,6 +27,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -35,8 +37,8 @@ public class MainActivity extends Activity {
 
 	private ServerSocket mServer;
 	// private Socket mSocket;
-	// recv port   
-	TextView myip,textResponse;
+	// recv port
+	TextView myip, textResponse;
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
 	String message = "";
@@ -71,7 +73,13 @@ public class MainActivity extends Activity {
 		// editTextAddress.setText(sendTextAddress);
 		// editTextPort.setText(sendTextPort);
 
-		buttonConnect.setOnClickListener(buttonConnectOnClickListener);
+		// buttonConnect.setOnClickListener(buttonConnectOnClickListener);
+		buttonConnect.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				connect();
+			}
+		});
 
 		buttonClear.setOnClickListener(new OnClickListener() {
 			@Override
@@ -95,18 +103,70 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private void connect() {
+		Socket connection = null;
+		BufferedReader reader = null;
+		try {
+			// サーバーへ接続
+			connection = new Socket(sendTextAddress, sendTextPort);
+
+			String sendMessage = "DataOutputStream : Message by Android<EOF>";
+			DataOutputStream out = new DataOutputStream(
+					connection.getOutputStream());
+			out.writeBytes(sendMessage);
+
+			// メッセージ取得オブジェクトのインスタンス化
+			reader = new BufferedReader(new InputStreamReader(
+					connection.getInputStream()));
+
+			// サーバーからのメッセージを受信
+			String message = reader.readLine();
+
+			// 接続確認
+			if (!(message.matches("^\\+OK.*$"))) {
+				textResponse.setText("サーバーからのメッセージ：" + message);
+				Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT)
+						.show();
+			} else {
+				textResponse.setText("サーバーからのメッセージ：" + message);
+				Toast.makeText(this, "サーバーとの接続に成功しました。", Toast.LENGTH_SHORT)
+						.show();
+			}
+
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+			textResponse.setText("エラー内容：" + e.toString());
+			Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT).show();
+		} catch (IOException e) {
+			e.printStackTrace();
+			textResponse.setText("エラー内容：" + e.toString());
+			Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT).show();
+		} finally {
+			try {
+				// 接続終了処理
+				reader.close();
+				connection.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				textResponse.setText("エラー内容：" + e.toString());
+				Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT)
+						.show();
+			}
+		}
+	}
+
 	OnClickListener buttonConnectOnClickListener = new OnClickListener() {
 		// Send Action
 		@Override
 		public void onClick(View v) {
 
 			Socket socket = null;
-			//request
+			// request
 			try {
 				socket = new Socket(sendTextAddress, sendTextPort);
 				socket.setSoTimeout(2000);
 				if (socket.isConnected()) {
-					mHandler.post(new Runnable(){
+					mHandler.post(new Runnable() {
 						@Override
 						public void run() {
 							textResponse.setText(textResponse.getText()
@@ -114,7 +174,7 @@ public class MainActivity extends Activity {
 						}
 					});
 				} else {
-					mHandler.post(new Runnable(){
+					mHandler.post(new Runnable() {
 						@Override
 						public void run() {
 							textResponse.setText(textResponse.getText()
@@ -132,7 +192,7 @@ public class MainActivity extends Activity {
 
 				e.printStackTrace();
 				message += e.toString();
-				mHandler.post(new Runnable(){
+				mHandler.post(new Runnable() {
 					@Override
 					public void run() {
 						textResponse.setText(message);
@@ -142,7 +202,7 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 				message += e.toString();
-				mHandler.post(new Runnable(){
+				mHandler.post(new Runnable() {
 					@Override
 					public void run() {
 						textResponse.setText(message);
@@ -151,45 +211,45 @@ public class MainActivity extends Activity {
 			}
 
 			boolean havemsg = false;
-			while(!havemsg) {
-//				try{
-					//Thread.sleep(1000);
-					//response
-					if (socket != null) {
-						try {
-							StringBuffer sb = new StringBuffer();
-							int ch;
-							while((ch = socket.getInputStream().read()) != -1){
-								sb.append((char) ch);
-								havemsg = true;
-							}
-							message += sb.toString();
-							mHandler.post(new Runnable(){
-								@Override
-								public void run() {
-									textResponse.setText(message);
-								}
-							});
-						} catch (SocketTimeoutException e){
-						} catch (IOException e) {
-							message += e.toString();
-							mHandler.post(new Runnable(){
-								@Override
-								public void run() {
-									textResponse.setText(message);
-								}
-							});
-							e.printStackTrace();
+			while (!havemsg) {
+				// try{
+				// Thread.sleep(1000);
+				// response
+				if (socket != null) {
+					try {
+						StringBuffer sb = new StringBuffer();
+						int ch;
+						while ((ch = socket.getInputStream().read()) != -1) {
+							sb.append((char) ch);
+							havemsg = true;
 						}
+						message += sb.toString();
+						mHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								textResponse.setText(message);
+							}
+						});
+					} catch (SocketTimeoutException e) {
+					} catch (IOException e) {
+						message += e.toString();
+						mHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								textResponse.setText(message);
+							}
+						});
+						e.printStackTrace();
 					}
-//				} catch (InterruptedException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
+				}
+				// } catch (InterruptedException e1) {
+				// // TODO Auto-generated catch block
+				// e1.printStackTrace();
+				// }
 			}
 			try {
 				message += "\n socket close";
-				mHandler.post(new Runnable(){
+				mHandler.post(new Runnable() {
 					@Override
 					public void run() {
 						textResponse.setText(message);
