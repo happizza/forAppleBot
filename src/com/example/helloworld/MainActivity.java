@@ -36,12 +36,11 @@ public class MainActivity extends Activity {
 	private ServerSocket mServer;
 	// private Socket mSocket;
 	// recv port
-	TextView myip;
+	TextView myip,textResponse;
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
 	String message = "";
 	Thread runner;
-	TextView textResponse = (TextView) findViewById(R.id.response);
 	Handler mHandler = new Handler();
 
 	@Override
