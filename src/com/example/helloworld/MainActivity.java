@@ -1,20 +1,27 @@
 package com.example.helloworld;
 
-import java.io.BufferedReader;
+import io.socket.IOAcknowledge;
+import io.socket.IOCallback;
+import io.socket.SocketIO;
+import io.socket.SocketIOException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.net.wifi.WifiInfo;
@@ -27,7 +34,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -44,6 +50,7 @@ public class MainActivity extends Activity {
 	String message = "";
 	Thread runner;
 	Handler mHandler = new Handler();
+	SocketIO socketIO;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +84,13 @@ public class MainActivity extends Activity {
 		buttonConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				connect();
+				try {
+					connectSocketIO();
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					textResponse.setText(e.toString());
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -103,56 +116,54 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	private void connect() {
-		Socket connection = null;
-		BufferedReader reader = null;
-		try {
-			// サーバーへ接続
-			connection = new Socket(sendTextAddress, sendTextPort);
-
-			String sendMessage = "DataOutputStream : Message by Android<EOF>";
-			DataOutputStream out = new DataOutputStream(
-					connection.getOutputStream());
-			out.writeBytes(sendMessage);
-
-			// メッセージ取得オブジェクトのインスタンス化
-			reader = new BufferedReader(new InputStreamReader(
-					connection.getInputStream()));
-
-			// サーバーからのメッセージを受信
-			String message = reader.readLine();
-
-			// 接続確認
-			if (!(message.matches("^\\+OK.*$"))) {
-				textResponse.setText("サーバーからのメッセージ：" + message);
-				Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT)
-						.show();
-			} else {
-				textResponse.setText("サーバーからのメッセージ：" + message);
-				Toast.makeText(this, "サーバーとの接続に成功しました。", Toast.LENGTH_SHORT)
-						.show();
+	private void connectSocketIO() throws MalformedURLException {
+		socketIO = new SocketIO("http://" + sendTextAddress + ":"
+				+ String.valueOf(sendTextPort) + "/");
+		socketIO.connect(new IOCallback() {
+			@Override
+			public void onMessage(JSONObject json, IOAcknowledge ack) {
+				try {
+					textResponse.setText("Server said:" + json.toString(2));
+					System.out.println("Server said:" + json.toString(2));
+				} catch (JSONException e) {
+					textResponse.setText(e.toString());
+					e.printStackTrace();
+				}
 			}
 
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			textResponse.setText("エラー内容：" + e.toString());
-			Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT).show();
-		} catch (IOException e) {
-			e.printStackTrace();
-			textResponse.setText("エラー内容：" + e.toString());
-			Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT).show();
-		} finally {
-			try {
-				// 接続終了処理
-				reader.close();
-				connection.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				textResponse.setText("エラー内容：" + e.toString());
-				Toast.makeText(this, "サーバーとの接続に失敗しました。", Toast.LENGTH_SHORT)
-						.show();
+			@Override
+			public void onMessage(String data, IOAcknowledge ack) {
+				textResponse.setText("Server said:" + data);
+				System.out.println("Server said: " + data);
 			}
-		}
+
+			@Override
+			public void onError(SocketIOException socketIOException) {
+				System.out.println("an Error occured");
+				textResponse.setText("an Error occured");
+				socketIOException.printStackTrace();
+			}
+
+			@Override
+			public void onDisconnect() {
+				textResponse.setText("Connection terminated.");
+				System.out.println("Connection terminated.");
+			}
+
+			@Override
+			public void onConnect() {
+				textResponse.setText("Connection established");
+				System.out.println("Connection established");
+			}
+
+			@Override
+			public void on(String event, IOAcknowledge ack, Object... args) {
+				textResponse.setText("Server triggered event '" + event + "'");
+				System.out.println("Server triggered event '" + event + "'");
+			}
+		});
+
+		socketIO.send("Hello Server!");
 	}
 
 	OnClickListener buttonConnectOnClickListener = new OnClickListener() {
@@ -164,7 +175,7 @@ public class MainActivity extends Activity {
 			// request
 			try {
 				socket = new Socket(sendTextAddress, sendTextPort);
-				socket.setSoTimeout(2000);
+				socket.setSoTimeout(10000);
 				if (socket.isConnected()) {
 					mHandler.post(new Runnable() {
 						@Override
