@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
 
 	private ServerSocket mServer;
 	// private Socket mSocket;
-	// recv port
+	// recv port   
 	TextView myip,textResponse;
 	EditText editTextAddress, editTextPort;
 	Button buttonConnect, buttonClear;
