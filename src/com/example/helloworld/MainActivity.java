@@ -57,13 +57,14 @@ public class MainActivity extends Activity {
 	Socket socket = null;
 	BufferedWriter writer = null;
 	BufferedReader reader = null;
+	String msg;
 
 	public void connect() {
 		// 启用异步处理多线程
-		AsyncTask<Void, String, Void> read = new AsyncTask<Void, String, Void>() {
+		AsyncTask<Void, String, String> read = new AsyncTask<Void, String, String>() {
 
 			@Override
-			protected Void doInBackground(Void... arg0) {
+			protected String doInBackground(Void... arg0) {
 				try {
 					socket = new Socket(sendTextAddress,
 							Integer.parseInt(sendTextPort));
@@ -85,12 +86,13 @@ public class MainActivity extends Activity {
 				try {
 					String line = null;
 					while ((line = reader.readLine()) != null) {
+						msg = line;
 						publishProgress(line);
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				return null;
+				return msg;
 			}
 
 			@Override
@@ -101,6 +103,11 @@ public class MainActivity extends Activity {
 				}
 				text.append("别人说：" + values[0] + "\n");
 				super.onProgressUpdate(values);
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				text.append("别人说：" + result + "\n");
 			}
 		};
 
