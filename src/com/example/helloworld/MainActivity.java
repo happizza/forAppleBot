@@ -107,6 +107,7 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected void onPostExecute(String result) {
+				super.onPostExecute(result);
 				text.append("别人说：" + result + "\n");
 			}
 		};
