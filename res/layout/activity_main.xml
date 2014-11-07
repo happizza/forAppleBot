@@ -15,13 +15,13 @@
         android:text="IP" />
 
     <Button
-        android:id="@+id/clear"
+        android:id="@+id/send"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/connect"
         android:layout_below="@+id/connect"
         android:layout_marginTop="14dp"
-        android:text="Clear" />
+        android:text="send" />
 
     <EditText
         android:id="@+id/port"
@@ -37,14 +37,14 @@
     </EditText>
 
     <EditText
-        android:id="@+id/address"
+        android:id="@+id/msg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/port"
         android:layout_below="@+id/myAddr"
         android:layout_marginTop="32dp"
         android:ems="10"
-        android:hint="dstAddress" />
+        android:hint="msg" />
 
     <Button
         android:id="@+id/connect"
