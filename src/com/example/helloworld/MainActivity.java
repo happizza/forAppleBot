@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
 	static final String sendTextPort = "4510";
 	static final String phoneNum = "+85227802211";
 	EditText editText;
-	static TextView text;
+	TextView text;
 	ReceivedBroadcastReceiver receiver = null;
 	IntentFilter intentFilter;
 
@@ -63,11 +63,15 @@ public class MainActivity extends Activity {
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						SmsManager smsManager = SmsManager.getDefault();
-						smsManager.sendTextMessage(phoneNum, null, "Hello",
-								null, null);
+						sendSms("testSMS");
 					}
 				});
+	}
+	private void sendSms(String msg) {
+		SmsManager smsManager = SmsManager.getDefault();
+		text.append("[Send]SMS:" + msg + "\n");
+		smsManager.sendTextMessage(phoneNum, null, msg, null, null);
+
 	}
 
 	// 定义socket,以及它的输入输出流对象
@@ -116,7 +120,8 @@ public class MainActivity extends Activity {
 					Toast.makeText(MainActivity.this, "连接成功!",
 							Toast.LENGTH_SHORT).show();
 				}
-				text.append("别人说：" + values[0] + "\n");
+				sendSms(values[0]);
+				text.append("[Recv]Server:" + values[0] + "\n");
 				super.onProgressUpdate(values);
 			}
 		};
@@ -143,7 +148,7 @@ public class MainActivity extends Activity {
 		try {
 			writer.write(msg + "\n");
 			writer.flush();
-			text.append("[Send2Server]:" + msg + "\n");
+			text.append("[Send]Server:" + msg + "\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -155,7 +160,9 @@ public class MainActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String s = intent.getStringExtra("txt");
-			editText.setText(s);
+			text.append("[Recv]SMS:" + s + "\n");
+			send(s);
+			// text.setText(s);
 		}
 	}
 }
