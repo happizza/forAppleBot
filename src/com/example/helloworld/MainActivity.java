@@ -9,22 +9,25 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	public static final String ACTION_RECEIVED = "com.example.helloworld.ACTION_RECEIVED";
 	static final String sendTextAddress = "192.168.0.101";
 	static final String sendTextPort = "4510";
+	static final String phoneNum = "+85227802211";
 	EditText editText;
 	TextView text;
-
-	Button buttonConnect, buttonClear;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,28 +46,38 @@ public class MainActivity extends Activity {
 					}
 				});
 
-		findViewById(R.id.send).setOnClickListener(new View.OnClickListener() {
+		findViewById(R.id.send2server).setOnClickListener(
+				new View.OnClickListener() {
 
-			@Override
-			public void onClick(View arg0) {
-				send();
-			}
+					@Override
+					public void onClick(View arg0) {
+						send();
+					}
 
-		});
+				});
+
+		findViewById(R.id.sendSms).setOnClickListener(
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						SmsManager smsManager = SmsManager.getDefault();
+						smsManager.sendTextMessage(phoneNum, null, "Hello",
+								null, null);
+					}
+				});
 	}
 
 	// 定义socket,以及它的输入输出流对象
 	Socket socket = null;
 	BufferedWriter writer = null;
 	BufferedReader reader = null;
-	String msg;
 
 	public void connect() {
 		// 启用异步处理多线程
-		AsyncTask<Void, String, String> read = new AsyncTask<Void, String, String>() {
+		AsyncTask<Void, String, Void> read = new AsyncTask<Void, String, Void>() {
 
 			@Override
-			protected String doInBackground(Void... arg0) {
+			protected Void doInBackground(Void... arg0) {
 				try {
 					socket = new Socket(sendTextAddress,
 							Integer.parseInt(sendTextPort));
@@ -86,13 +99,12 @@ public class MainActivity extends Activity {
 				try {
 					String line = null;
 					while ((line = reader.readLine()) != null) {
-						msg = line;
 						publishProgress(line);
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				return msg;
+				return null;
 			}
 
 			@Override
@@ -103,12 +115,6 @@ public class MainActivity extends Activity {
 				}
 				text.append("别人说：" + values[0] + "\n");
 				super.onProgressUpdate(values);
-			}
-
-			@Override
-			protected void onPostExecute(String result) {
-				super.onPostExecute(result);
-				text.append("别人说：" + result + "\n");
 			}
 		};
 
@@ -129,4 +135,11 @@ public class MainActivity extends Activity {
 
 	}
 
+	class ReceivedBroadcastReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String s = intent.getStringExtra("txt");
+			editText.setText(s);
+		}
+	}
 }
