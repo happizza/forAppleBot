@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -27,7 +28,9 @@ public class MainActivity extends Activity {
 	static final String sendTextPort = "4510";
 	static final String phoneNum = "+85227802211";
 	EditText editText;
-	TextView text;
+	static TextView text;
+	ReceivedBroadcastReceiver receiver = null;
+	IntentFilter intentFilter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +54,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void onClick(View arg0) {
-						send();
+						send("send2Server");
 					}
 
 				});
@@ -121,13 +124,26 @@ public class MainActivity extends Activity {
 		// 启动线程
 		read.execute();
 	}
+	@Override
+	protected void onPause() {
+		super.onPause();
+		unregisterReceiver(receiver);
+	}
 
-	public void send() {
+	@Override
+	protected void onResume() {
+		super.onResume();
+		receiver = new ReceivedBroadcastReceiver();
+		intentFilter = new IntentFilter();
+		intentFilter.addAction(ACTION_RECEIVED);
+		registerReceiver(receiver, intentFilter);
+	}
+
+	public void send(String msg) {
 		try {
-			writer.write(editText.getText().toString() + "\n");
+			writer.write(msg + "\n");
 			writer.flush();
-			text.append("我说:" + editText.getText().toString() + "\n");
-			editText.setText("");
+			text.append("[Send2Server]:" + msg + "\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
