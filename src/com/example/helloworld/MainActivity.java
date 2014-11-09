@@ -7,12 +7,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -28,7 +31,9 @@ public class MainActivity extends Activity {
 	static final String sendTextPort = "4510";
 	static final String phoneNum = "+85227802211";
 	EditText editText;
-	TextView text;
+	ArrayList<String> logList = new ArrayList<String>();
+	TextView response;
+	TextView myip;
 	ReceivedBroadcastReceiver receiver = null;
 	IntentFilter intentFilter;
 
@@ -38,7 +43,17 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		editText = (EditText) findViewById(R.id.msg);
-		text = (TextView) findViewById(R.id.response);
+		response = (TextView) findViewById(R.id.response);
+
+		// Recv
+		WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+		WifiInfo wifIinfo = wifiManager.getConnectionInfo();
+		int address = wifIinfo.getIpAddress();
+		String ipAddressStr = ((address >> 0) & 0xFF) + "."
+				+ ((address >> 8) & 0xFF) + "." + ((address >> 16) & 0xFF)
+				+ "." + ((address >> 24) & 0xFF);
+		myip = (TextView) findViewById(R.id.myAddr);
+		myip.setText(ipAddressStr);
 
 		findViewById(R.id.connect).setOnClickListener(
 				new View.OnClickListener() {
@@ -69,9 +84,21 @@ public class MainActivity extends Activity {
 	}
 	private void sendSms(String msg) {
 		SmsManager smsManager = SmsManager.getDefault();
-		text.append("[Send]SMS:" + msg + "\n");
+		setResponse("[Send]SMS:" + msg);
 		smsManager.sendTextMessage(phoneNum, null, msg, null, null);
 
+	}
+
+	private void setResponse(String msg) {
+		if (logList.size() >= 10) {
+			logList.remove(0);
+		}
+		logList.add(msg);
+		StringBuffer sb = new StringBuffer();
+		for (String alog : logList) {
+			sb.append(alog + "\n");
+		}
+		response.setText(sb.toString());
 	}
 
 	// 定义socket,以及它的输入输出流对象
@@ -119,9 +146,10 @@ public class MainActivity extends Activity {
 				if (values[0].equals("@Successfully!")) {
 					Toast.makeText(MainActivity.this, "连接成功!",
 							Toast.LENGTH_SHORT).show();
+				} else {
+					sendSms(values[0]);
 				}
-				sendSms(values[0]);
-				text.append("[Recv]Server:" + values[0] + "\n");
+				setResponse("[Recv]Server:" + values[0]);
 				super.onProgressUpdate(values);
 			}
 		};
@@ -148,7 +176,7 @@ public class MainActivity extends Activity {
 		try {
 			writer.write(msg + "\n");
 			writer.flush();
-			text.append("[Send]Server:" + msg + "\n");
+			setResponse("[Send]Server:" + msg);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +188,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String s = intent.getStringExtra("txt");
-			text.append("[Recv]SMS:" + s + "\n");
+			setResponse("[Recv]SMS:" + s);
 			send(s);
 			// text.setText(s);
 		}
