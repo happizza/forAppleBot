@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 	static final String sendTextPort = "4510";
 	static final String phoneNum = "+85227802211";
 	EditText editText;
-	ArrayList<String> logList = new ArrayList<String>();
+	LinkedList<String> logList = new LinkedList<String>();
 	TextView response;
 	TextView myip;
 	ReceivedBroadcastReceiver receiver = null;
@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void onClick(View arg0) {
-						send("send2Server");
+						send(editText.getText().toString());
 					}
 
 				});
@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						sendSms("testSMS");
+						sendSms(editText.getText().toString());
 					}
 				});
 	}
@@ -91,9 +91,9 @@ public class MainActivity extends Activity {
 
 	private void setResponse(String msg) {
 		if (logList.size() >= 10) {
-			logList.remove(0);
+			logList.removeFirst();
 		}
-		logList.add(msg);
+		logList.addLast(msg);
 		StringBuffer sb = new StringBuffer();
 		for (String alog : logList) {
 			sb.append(alog + "\n");
@@ -143,13 +143,13 @@ public class MainActivity extends Activity {
 
 			@Override
 			protected void onProgressUpdate(String... values) {
+				setResponse("[Recv]Server:" + values[0]);
 				if (values[0].equals("@Successfully!")) {
 					Toast.makeText(MainActivity.this, "连接成功!",
 							Toast.LENGTH_SHORT).show();
 				} else {
 					sendSms(values[0]);
 				}
-				setResponse("[Recv]Server:" + values[0]);
 				super.onProgressUpdate(values);
 			}
 		};
@@ -174,9 +174,9 @@ public class MainActivity extends Activity {
 
 	public void send(String msg) {
 		try {
+			setResponse("[Send]Server:" + msg);
 			writer.write(msg + "\n");
 			writer.flush();
-			setResponse("[Send]Server:" + msg);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
