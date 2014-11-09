@@ -25,7 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-
+	private static final String DEFAULT_RECV_MSG = "NO RECVICE MESSAGE";
+	private static final String DEFAULT_SEND_MSG = "NO SEND MESSAGE";
 	public static final String ACTION_RECEIVED = "com.example.helloworld.ACTION_RECEIVED";
 	static final String sendTextAddress = "192.168.0.101";
 	static final String sendTextPort = "4510";
@@ -84,6 +85,9 @@ public class MainActivity extends Activity {
 	}
 	private void sendSms(String msg) {
 		SmsManager smsManager = SmsManager.getDefault();
+		if (msg == null || msg.length() == 0) {
+			msg = DEFAULT_SEND_MSG;
+		}
 		setResponse("[Send]SMS:" + msg);
 		smsManager.sendTextMessage(phoneNum, null, msg, null, null);
 
@@ -174,6 +178,9 @@ public class MainActivity extends Activity {
 
 	public void send(String msg) {
 		try {
+			if (msg == null || msg.length() == 0) {
+				msg = DEFAULT_RECV_MSG;
+			}
 			setResponse("[Send]Server:" + msg);
 			writer.write(msg + "\n");
 			writer.flush();
